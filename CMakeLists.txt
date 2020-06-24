@@ -1,26 +1,12 @@
-# Copyright(c) 2019 spdlog authors Distributed under the MIT License (http://opensource.org/licenses/MIT)
+#
+# Copyright(c) 2015 Ruslan Baratov.
+# Distributed under the MIT License (http://opensource.org/licenses/MIT)
+#
 
-cmake_minimum_required(VERSION 3.2)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.11)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-    cmake_policy(VERSION 3.11)
-endif()
-
-enable_language(C)
-
-# ---------------------------------------------------------------------------------------
-# Start spdlog project
-# ---------------------------------------------------------------------------------------
-include(cmake/utils.cmake)
-include(cmake/ide.cmake)
-
-spdlog_extract_version()
-
-project(spdlog VERSION ${SPDLOG_VERSION} LANGUAGES CXX)
-message(STATUS "Build spdlog: ${SPDLOG_VERSION}")
-
+cmake_minimum_required(VERSION 3.1)
+project(spdlog VERSION 0.17.0 LANGUAGES CXX)
+include(CTest)
+include(CMakeDependentOption)
 include(GNUInstallDirs)
 
 # ---------------------------------------------------------------------------------------

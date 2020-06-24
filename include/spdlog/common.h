@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <spdlog/tweakme.h>
-#include <spdlog/details/null_mutex.h>
+#define SPDLOG_VERSION "0.17.0"
+
+#include "tweakme.h"
 
 #include <atomic>
 #include <chrono>
@@ -193,19 +194,19 @@ enum class pattern_time_type
 //
 // Log exception
 //
-class SPDLOG_API spdlog_ex : public std::exception
+class spdlog_ex : public std::exception
 {
 public:
     explicit spdlog_ex(std::string msg);
     spdlog_ex(const std::string &msg, int last_errno);
     const char *what() const SPDLOG_NOEXCEPT override;
 
-private:
-    std::string msg_;
-};
-
-SPDLOG_API void throw_spdlog_ex(const std::string &msg, int last_errno);
-SPDLOG_API void throw_spdlog_ex(std::string msg);
+    spdlog_ex(const std::string &msg, int last_errno)
+    {
+        fmt::MemoryWriter writer;
+        fmt::format_system_error(writer, last_errno, msg);
+        _msg = writer.str();
+    }
 
 struct source_loc
 {
@@ -238,7 +239,16 @@ std::unique_ptr<T> make_unique(Args &&... args)
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 #endif
-} // namespace details
+
+#define SPDLOG_CATCH_AND_HANDLE                                                                                                            \
+    catch (const std::exception &ex)                                                                                                       \
+    {                                                                                                                                      \
+        _err_handler(ex.what());                                                                                                           \
+    }                                                                                                                                      \
+    catch (...)                                                                                                                            \
+    {                                                                                                                                      \
+        _err_handler("Unknown exeption in logger");                                                                                        \
+    }
 } // namespace spdlog
 
 #ifdef SPDLOG_HEADER_ONLY

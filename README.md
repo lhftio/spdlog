@@ -32,11 +32,17 @@ $ cmake .. && make -j
 * conan: `spdlog/[>=1.4.1]`
 * conda: `conda install -c conda-forge spdlog`
 
+## Platforms
+ * Linux, FreeBSD, Solaris, AIX
+ * Windows (vc 2013+, cygwin)
+ * Mac OSX (clang 3.5+)
+ * Android
 
 ## Features
-* Very fast (see [benchmarks](#benchmarks) below).
-* Headers only or compiled
-* Feature rich formatting, using the excellent [fmt](https://github.com/fmtlib/fmt) library.
+* Very fast - performance is the primary goal (see [benchmarks](#benchmarks) below).
+* Headers only, just copy and use.
+* Feature rich [call style](#usage-example) using the excellent [fmt](https://github.com/fmtlib/fmt) library.
+* Optional printf syntax support.
 * Asynchronous mode (optional)
 * [Custom](https://github.com/gabime/spdlog/wiki/3.-Custom-formatting) formatting.
 * Multi/Single threaded loggers.
@@ -133,12 +139,11 @@ void rotating_example()
 #### Daily files
 ```c++
 
-#include "spdlog/sinks/daily_file_sink.h"
-void daily_example()
-{
-    // Create a daily logger - a new file is created every day on 2:30am
-    auto logger = spdlog::daily_logger_mt("daily_logger", "logs/daily.txt", 2, 30);
-}
+|threads|boost log 1.54|glog   |easylogging |spdlog|
+|-------|:-------:|:-----:|----------:|------:|
+|1|       4.169s  |1.066s |0.975s     |0.392s|
+|10|     6.180s   |3.032s |2.857s     |0.773s|
+|100|     5.981s  |1.139s |4.512s     |0.587s|
 
 ```
 
@@ -148,14 +153,11 @@ void daily_example()
 // Loggers can store in a ring buffer all messages (including debug/trace) and display later on demand.
 // When needed, call dump_backtrace() to see them
 
-spdlog::enable_backtrace(32); // Store the latest 32 messages in a buffer. Older messages will be dropped.
-// or my_logger->enable_backtrace(32)..
-for(int i = 0; i < 100; i++)
-{
-  spdlog::debug("Backtrace message {}", i); // not logged yet..
-}
-// e.g. if some error happened:
-spdlog::dump_backtrace(); // log them now! show the last 32 messages
+|threads|g2log <sup>async logger</sup>   |spdlog <sup>async mode</sup>|
+|:-------|:-----:|-------------------------:|
+|1|       1.850s |0.39s |
+|10|      0.943s  |0.416s|
+|100|      0.959s |0.413s|
 
 // or my_logger->dump_backtrace(32)..
 ```
@@ -225,11 +227,11 @@ void multi_sink_example()
 #include "spdlog/sinks/basic_file_sink.h"
 void async_example()
 {
-    // default thread pool settings can be modified *before* creating the async logger:
-    // spdlog::init_thread_pool(8192, 1); // queue with 8k items and 1 backing thread.
-    auto async_file = spdlog::basic_logger_mt<spdlog::async_factory>("async_file_logger", "logs/async_log.txt");
-    // alternatively:
-    // auto async_file = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>("async_file_logger", "logs/async_log.txt");   
+    size_t q_size = 4096; 
+    spd::set_async_mode(q_size);
+    auto async_file = spd::daily_logger_st("async_file_logger", "logs/async_log.txt");
+    for (int i = 0; i < 100; ++i)
+        async_file->info("Async message #{}", i);
 }
 
 ```

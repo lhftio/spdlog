@@ -60,10 +60,11 @@ protected:
     WORD set_foreground_color_(WORD attribs);
 
     // print a range of formatted message to console
-    void print_range_(const memory_buf_t &formatted, size_t start, size_t end);
-
-    // in case we are redirected to file (not in console mode)
-    void write_to_file_(const memory_buf_t &formatted);
+    void _print_range(const details::log_msg &msg, size_t start, size_t end)
+    {
+        DWORD size = static_cast<DWORD>(end - start);
+        WriteFile(out_handle_, msg.formatted.data() + start, size, nullptr, nullptr);
+    }
 };
 
 template<typename ConsoleMutex>
